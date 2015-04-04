@@ -4,6 +4,8 @@ require 'fileutils'
 
 class CNCPhotoBooth
   def initialize(input_path, output_folder)
+  output_folder = File.expand_path(output_folder)
+
     @current_line_num = 0
     @input_name = File.split(input_path)[-1].gsub(File.extname(input_path), "")
 
@@ -100,7 +102,7 @@ class CNCPhotoBooth
   end
 end
 
-photo_booth = CNCPhotoBooth.new(ARGV[0], "/Users/aarongough/Desktop/cnc_photo_booth_toolpaths/")
+photo_booth = CNCPhotoBooth.new(ARGV[0], "~/Desktop/cnc_photo_booth_toolpaths/")
 
 photo_booth.generate_gcode()
 photo_booth.generate_svg()

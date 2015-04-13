@@ -4,7 +4,7 @@ require 'fileutils'
 
 class CNCPhotoBooth
   def initialize(input_path, output_folder)
-  output_folder = File.expand_path(output_folder)
+    output_folder = File.expand_path(output_folder)
 
     @current_line_num = 0
     @input_name = File.split(input_path)[-1].gsub(File.extname(input_path), "")
@@ -20,9 +20,10 @@ class CNCPhotoBooth
 
     @image = ChunkyPNG::Image.from_file(input_path)
 
-    @resolution = 0.08
     @left_margin = 0.85
     @top_margin = 1.1
+
+    @resolution = (8.5 - (@left_margin * 2)) / @image.width
 
     @z_clear = 0.1
     @z_max = -0.05
@@ -32,10 +33,10 @@ class CNCPhotoBooth
   def generate_gcode()
     gcode "%", false
     gcode "O999 (CNC PHOTO BOOTH FOR #{@input_name.gsub(/\W/,"").upcase})"
-    gcode "G54 G17 G80 G8 G90 M92 M5 G0"
+    gcode "G54 G17 G80 G8 G90 M90 M5 G0"
     gcode "M94 P91 Q0.003"
     gcode "X#{@left_margin} Y#{@top_margin} Z#{@z_clear}"
-    gcode "G1 F250"
+    gcode "G1 F250."
 
     @image.height.times do |y|
       x_cols = @image.width.times.to_a
@@ -45,13 +46,13 @@ class CNCPhotoBooth
         x_pos = (@left_margin + (x*@resolution)).round(3)
         y_pos = (@top_margin + (y*@resolution)).round(3)
         z_pos = (shade*@z_step).round(3)
-        gcode "X#{x_pos} Y#{y_pos} Z#{z_pos}"
+        gcode "X#{x_pos}Y#{y_pos}Z#{z_pos}"
       end
     end
 
     gcode "G0 Z10.0"
     gcode "X0. Y0."
-    gcode "M2"
+    gcode "M0"
     gcode "%", false
   end
 
@@ -68,7 +69,7 @@ class CNCPhotoBooth
       x_cols.reverse! if y.odd?
       x_cols.each do |x|
         shade = 255 - ChunkyPNG::Color.r(@image[x,y])
-        x_pos = (@left_margin + (x*@resolution)).round(3)
+        x_pos = (@left_margin  + (x*@resolution)).round(3)
         y_pos = (@top_margin + (y*@resolution)).round(3)
         radius = ((@resolution / 255 / 2) * shade).round(3)
         svg "    <circle cx=\"#{x_pos}\" cy=\"#{y_pos}\" r=\"#{radius}\" stroke=\"black\" fill=\"black\" stroke-width=\"0\"/>"
@@ -88,12 +89,12 @@ class CNCPhotoBooth
     puts @output_svg_path
   end
 
-  def gcode(string, include_line_num = true)
+  def gcode(string, include_line_num = false)
     if include_line_num
-      @output_ngc_file << "N#{@current_line_num} #{string}\n"
+      @output_ngc_file << "N#{@current_line_num} #{string}\r"
       @current_line_num += 1
     else
-      @output_ngc_file << "#{string}\n"
+      @output_ngc_file << "#{string}\r"
     end
   end
 

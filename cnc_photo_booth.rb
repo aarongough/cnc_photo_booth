@@ -35,7 +35,7 @@ class CNCPhotoBooth
     gcode "O999 (CNC PHOTO BOOTH FOR #{@input_name.gsub(/\W/,"").upcase})"
     gcode "G54 G17 G80 G8 G90 M90 M5 G0"
     gcode "M94 P91 Q0.003"
-    gcode "X#{@left_margin} Y#{@top_margin} Z#{@z_clear}"
+    gcode "X#{@left_margin} Y#{-@top_margin} Z#{@z_clear}"
     gcode "G1 F250."
 
     @image.height.times do |y|
@@ -44,8 +44,8 @@ class CNCPhotoBooth
       x_cols.each do |x|
         shade = ChunkyPNG::Color.r(@image[x,y])
         x_pos = (@left_margin + (x*@resolution)).round(3)
-        y_pos = (@top_margin + (y*@resolution)).round(3)
-        z_pos = (shade*@z_step).round(3)
+        y_pos = (-@top_margin - (y*@resolution)).round(3)
+        z_pos = (@z_max - (shade*@z_step)).round(3)
         gcode "X#{x_pos}Y#{y_pos}Z#{z_pos}"
       end
     end
@@ -89,7 +89,7 @@ class CNCPhotoBooth
     puts @output_svg_path
   end
 
-  def gcode(string, include_line_num = false)
+  def gcode(string, include_line_num = true)
     if include_line_num
       @output_ngc_file << "N#{@current_line_num} #{string}\r"
       @current_line_num += 1
@@ -103,7 +103,7 @@ class CNCPhotoBooth
   end
 end
 
-photo_booth = CNCPhotoBooth.new(ARGV[0], "~/Desktop/cnc_photo_booth_toolpaths/")
+photo_booth = CNCPhotoBooth.new(ARGV[0], "~/Desktop/MacDNC Files/")
 
 photo_booth.generate_gcode()
 photo_booth.generate_svg()

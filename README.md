@@ -1,4 +1,4 @@
-# cnc_photo_booth
+# CNC Photo Booth
 
 A program for using a CNC machine as the plotter for a Photo Booth!
 
@@ -14,7 +14,7 @@ The image capture side of the application is currently implemented as an Automat
 
   * Prompt the user to enter their name
   * Launch the webcam
-	* Prompt the user to take a photo
+  * Prompt the user to take a photo
   * Save the photo to disk (filename is their name)
   * Increase the contrast and saturation of the image
   * Resize the image to 85x110 pixels
